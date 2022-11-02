@@ -1,0 +1,28 @@
+---
+- name: Create repo directory
+  file:
+    path: "{{rdma_core_src_destination}}"
+    state: directory
+- name: Init repo
+  command: git init {{rdma_core_src_destination}}
+  args:
+    creates: "{{rdma_core_src_destination}}/.git"
+- name: Test repo state
+  command: git show {{rdma_core_branch}}
+  args:
+    chdir: "{{rdma_core_src_destination}}"
+  register: result
+  ignore_errors: true
+  changed_when: result.rc != 0
+- name: Upload the repo
+  local_action:
+    module: command git push ssh://{{inventory_hostname}}/{{rdma_core_src_destination}} {{rdma_core_branch}}
+    chdir: "{{rdma_core_src_source}}"
+  when: 'result.rc != 0'
+- name: Checkout the newly created branch
+  command: git checkout {{rdma_core_branch}}
+  args:
+    chdir: "{{rdma_core_src_destination}}"
+  register: result
+  changed_when: "'Switched' in result.stdout"
+

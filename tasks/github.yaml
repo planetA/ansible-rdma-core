@@ -1,0 +1,12 @@
+---
+- name: Get rdma-core
+  unarchive: 
+    src: "https://github.com/linux-rdma/rdma-core/releases/download/v{{rdma_core_version}}/rdma-core-{{rdma_core_version}}.tar.gz"
+    dest: "{{rdma_core_src_destination | dirname}}"
+    remote_src: yes
+    creates: "{{rdma_core_src_destination}}"
+- name: Move to the expected location
+  command: "mv {{rdma_core_src_destination}}-{{rdma_core_version}} {{rdma_core_src_destination}}"
+  args:
+    creates: "{{rdma_core_src_destination}}"
+

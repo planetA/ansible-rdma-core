@@ -1,4 +1,8 @@
 ---
 # defaults file for rdma-core
 rdma_core_build: Debug
+rdma_core_install_become: false
+rdma_core_install_destination: /usr
 rdma_core_j: 5
+rdma_core_version: 41.1
+rdma_core_cmake_flags: ""

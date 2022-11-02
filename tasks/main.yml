@@ -15,23 +15,22 @@
       - libudev-dev
       - libsystemd-dev
       - libdrm-dev
-- name: Get rdma-core
-  unarchive: 
-    src: "https://github.com/linux-rdma/rdma-core/releases/download/v{{rdma_core_version}}/rdma-core-{{rdma_core_version}}.tar.gz"
-    dest: "{{rdma_core_destination}}"
-    remote_src: yes
+- include_tasks: github.yaml
+  when: 'rdma_core_fetch_method == "github"'
+- include_tasks: git_push.yaml
+  when: 'rdma_core_fetch_method == "git_push"'
 - name: Compile rdma-core
   shell: |
-    mkdir build
-    cmake -D CMAKE_INSTALL_PREFIX=/usr  -DCMAKE_BUILD_TYPE={{rdma_core_build}} -S . -B build || exit 1
+    cmake -D CMAKE_INSTALL_PREFIX={{rdma_core_install_destination}} \
+      -DCMAKE_BUILD_TYPE={{rdma_core_build}} -S . -B build || exit 1
     cmake --build build -j {{rdma_core_j}} || exit 1
   args:
-    chdir: "{{ rdma_core_destination }}/rdma-core-{{rdma_core_version}}"
-    creates: "{{ rdma_core_destination }}/rdma-core-{{rdma_core_version}}/build/bin/ibv_devices"
+    chdir: "{{ rdma_core_src_destination }}"
+    creates: "{{ rdma_core_src_destination }}/build/bin/ibv_devices"
 - name: Install rdma-core
-  become: true
+  become: "{{rdma_core_install_become}}"
   shell: |
     cmake --install build
   args:
-    chdir: "{{ rdma_core_destination }}/rdma-core-{{rdma_core_version}}"
-    creates: "/usr/bin/ibv_devices"
+    chdir: "{{ rdma_core_src_destination }}"
+    creates: "{{rdma_core_install_destination}}/bin/ibv_devices"
