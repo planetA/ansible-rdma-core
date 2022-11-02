@@ -1,0 +1,4 @@
+---
+# defaults file for rdma-core
+rdma_core_build: Debug
+rdma_core_j: 5

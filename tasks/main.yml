@@ -1,0 +1,37 @@
+---
+- name: Install all required dev packages
+  become: true
+  apt:
+    pkg:
+      - libnl-route-3-dev
+      - pandoc
+      - docutils-common
+      - iproute2
+      - libmnl-dev
+      - libnl-genl-3-dev
+      - cmake
+      - pkg-config
+      - libtool
+      - libudev-dev
+      - libsystemd-dev
+      - libdrm-dev
+- name: Get rdma-core
+  unarchive: 
+    src: "https://github.com/linux-rdma/rdma-core/releases/download/v{{rdma_core_version}}/rdma-core-{{rdma_core_version}}.tar.gz"
+    dest: "{{rdma_core_destination}}"
+    remote_src: yes
+- name: Compile rdma-core
+  shell: |
+    mkdir build
+    cmake -D CMAKE_INSTALL_PREFIX=/usr  -DCMAKE_BUILD_TYPE={{rdma_core_build}} -S . -B build || exit 1
+    cmake --build build -j {{rdma_core_j}} || exit 1
+  args:
+    chdir: "{{ rdma_core_destination }}/rdma-core-{{rdma_core_version}}"
+    creates: "{{ rdma_core_destination }}/rdma-core-{{rdma_core_version}}/build/bin/ibv_devices"
+- name: Install rdma-core
+  become: true
+  shell: |
+    cmake --install build
+  args:
+    chdir: "{{ rdma_core_destination }}/rdma-core-{{rdma_core_version}}"
+    creates: "/usr/bin/ibv_devices"
