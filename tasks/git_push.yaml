@@ -8,7 +8,7 @@
   args:
     creates: "{{rdma_core_src_destination}}/.git"
 - name: Test repo state
-  command: git show {{rdma_core_branch}}
+  command: git show {{rdma_core_branch}} --
   args:
     chdir: "{{rdma_core_src_destination}}"
   register: result
@@ -16,11 +16,13 @@
   changed_when: result.rc != 0
 - name: Upload the repo
   local_action:
-    module: command git push ssh://{{inventory_hostname}}/{{rdma_core_src_destination}} {{rdma_core_branch}}
+    module: command git push ssh://{{ansible_user}}@{{ansible_host}}:/{{rdma_core_src_destination}} {{rdma_core_branch}}
     chdir: "{{rdma_core_src_source}}"
+  environment:
+    GIT_SSH_COMMAND: "ssh -i {{playbook_dir}}/{{ansible_ssh_private_key_file}} "
   when: 'result.rc != 0'
 - name: Checkout the newly created branch
-  command: git checkout {{rdma_core_branch}}
+  shell: git checkout -f {{rdma_core_branch}}
   args:
     chdir: "{{rdma_core_src_destination}}"
   register: result

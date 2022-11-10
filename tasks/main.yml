@@ -2,6 +2,7 @@
 - name: Install all required dev packages
   become: true
   apt:
+    update_cache: true
     pkg:
       - libnl-route-3-dev
       - pandoc
@@ -17,20 +18,17 @@
       - libdrm-dev
 - include_tasks: github.yaml
   when: 'rdma_core_fetch_method == "github"'
+- include_tasks: git_rsync.yaml
+  when: 'rdma_core_fetch_method == "git_rsync"'
 - include_tasks: git_push.yaml
   when: 'rdma_core_fetch_method == "git_push"'
 - name: Compile rdma-core
   shell: |
     cmake -D CMAKE_INSTALL_PREFIX={{rdma_core_install_destination}} \
+      -DCMAKE_INSTALL_RPATH={{rdma_core_install_destination}}/lib \
       -DCMAKE_BUILD_TYPE={{rdma_core_build}} -S . -B build || exit 1
     cmake --build build -j {{rdma_core_j}} || exit 1
   args:
     chdir: "{{ rdma_core_src_destination }}"
     creates: "{{ rdma_core_src_destination }}/build/bin/ibv_devices"
-- name: Install rdma-core
-  become: "{{rdma_core_install_become}}"
-  shell: |
-    cmake --install build
-  args:
-    chdir: "{{ rdma_core_src_destination }}"
-    creates: "{{rdma_core_install_destination}}/bin/ibv_devices"
+  notify: Install rdma-core

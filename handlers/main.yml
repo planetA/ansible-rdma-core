@@ -1,2 +1,8 @@
 ---
 # handlers file for rdma-core
+- name: Install rdma-core
+  become: "{{rdma_core_install_become}}"
+  shell: |
+    cmake --install build
+  args:
+    chdir: "{{ rdma_core_src_destination }}"
